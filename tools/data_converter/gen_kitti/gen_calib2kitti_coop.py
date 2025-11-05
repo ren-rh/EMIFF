@@ -430,7 +430,6 @@ def gen_calib2kitti_coop(source_root, target_root, label_type="lidar"):
     mkdir_p(path_calib)
     
     path = 'data/DAIR-V2X/cooperative-vehicle-infrastructure'
-    #path = '/home/yc/DataSet/dair-rain'
     frame_pairs = read_json(os.path.join(path, "cooperative/data_info.json"))
     sensortype = 'camera'
     

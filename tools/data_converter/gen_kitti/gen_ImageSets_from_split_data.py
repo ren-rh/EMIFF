@@ -55,7 +55,6 @@ def gen_ImageSet_from_coop_split_data(ImageSets_path, split_data_path, sensor_vi
     # embed(header='imagesets')
     
     frame_pairs = load_json('data/DAIR-V2X/cooperative-vehicle-infrastructure/cooperative/data_info.json')
-    #frame_pairs = load_json('/home/yc/DataSet/dair-rain/cooperative/data_info.json')
     
     split_data = split_datas["cooperative_split"]['train']
     inf_train_split = []
