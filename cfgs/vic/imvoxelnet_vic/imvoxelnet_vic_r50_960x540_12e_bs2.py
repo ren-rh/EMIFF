@@ -163,7 +163,7 @@ total_epochs = 12
 
 checkpoint_config = dict(interval=1, max_keep_ckpts=1)
 
-run_name = '0201_imvoxelnet_vic_r50_960x540_12e_bs2x1'
+run_name = 'Imvoxelnet_E'
 wandb_init_dict = dict(
     type='WandbLoggerHook',
     init_kwargs = dict(

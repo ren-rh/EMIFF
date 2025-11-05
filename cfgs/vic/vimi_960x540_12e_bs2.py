@@ -175,7 +175,7 @@ total_epochs = 12
 
 checkpoint_config = dict(interval=1, max_keep_ckpts=1)
 
-run_name = '0523_VIMI_Reproduction_960x540_12e_bs2x1'
+run_name = 'EMIFF'
 wandb_init_dict = dict(
     type='WandbLoggerHook',
     init_kwargs = dict(
