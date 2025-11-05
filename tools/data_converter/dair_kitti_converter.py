@@ -111,7 +111,7 @@ def create_kitti_info_file(data_path,
     kitti_infos_train = get_kitti_image_info(
         data_path,
         training=True,
-        velodyne=True,
+        velodyne=False,
         calib=True,
         image_ids=train_img_ids,
         inf_image_ids=inf_train_img_ids,
@@ -120,11 +120,11 @@ def create_kitti_info_file(data_path,
     
     
     
-    _calculate_num_points_in_gt(data_path, kitti_infos_train, relative_path)
+    #_calculate_num_points_in_gt(data_path, kitti_infos_train, relative_path)
     filename = save_path / f'{pkl_prefix}_infos_train.pkl'
     print(f'Kitti info train file is saved to {filename}')
     mmcv.dump(kitti_infos_train, filename)
-    kitti_infos_val = get_kitti_image_info(
+    '''kitti_infos_val = get_kitti_image_info(
         data_path,
         training=True,
         velodyne=True,
@@ -138,7 +138,7 @@ def create_kitti_info_file(data_path,
     mmcv.dump(kitti_infos_val, filename)
     filename = save_path / f'{pkl_prefix}_infos_trainval.pkl'
     print(f'Kitti info trainval file is saved to {filename}')
-    mmcv.dump(kitti_infos_train + kitti_infos_val, filename)
+    mmcv.dump(kitti_infos_train + kitti_infos_val, filename)'''
 
     # kitti_infos_test = get_kitti_image_info(
     #     data_path,

@@ -327,7 +327,7 @@ def train_detector(model,
         
     # from IPython import embed
     # embed(header='Before runner.run')
-    
+    print("************************************************************************")
     runner.run(data_loaders, cfg.workflow)
 
 

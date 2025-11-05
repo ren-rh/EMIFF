@@ -430,6 +430,176 @@ def gen_calib2kitti_coop(source_root, target_root, label_type="lidar"):
     mkdir_p(path_calib)
     
     path = 'data/DAIR-V2X/cooperative-vehicle-infrastructure'
+    #path = '/home/yc/DataSet/dair-rain'
+    frame_pairs = read_json(os.path.join(path, "cooperative/data_info.json"))
+    sensortype = 'camera'
+    
+    inf_path2info = build_path_to_info(
+            "infrastructure-side",
+            read_json(osp.join(path, "infrastructure-side/data_info.json")),
+            sensortype,
+        )
+    veh_path2info = build_path_to_info(
+            "vehicle-side",
+            read_json(osp.join(path, "vehicle-side/data_info.json")),
+            sensortype,
+        )
+
+    data = []
+    inf_frames = {}
+    veh_frames = {}
+
+    for elem in tqdm(frame_pairs):
+        if sensortype == "lidar":
+            inf_frame = inf_path2info[elem["infrastructure_pointcloud_path"]]
+            veh_frame = veh_path2info[elem["vehicle_pointcloud_path"]]
+        elif sensortype == "camera":
+            inf_frame = inf_path2info[elem["infrastructure_image_path"]]
+            veh_frame = veh_path2info[elem["vehicle_image_path"]]
+            
+        inf_frame = InfFrame(path + "/infrastructure-side/", inf_frame)
+        veh_frame = VehFrame(path + "/vehicle-side/", veh_frame)
+        
+        if not inf_frame["batch_id"] in inf_frames:
+                inf_frames[inf_frame["batch_id"]] = [inf_frame]
+        else:
+            inf_frames[inf_frame["batch_id"]].append(inf_frame)
+        if not veh_frame["batch_id"] in veh_frames:
+            veh_frames[veh_frame["batch_id"]] = [veh_frame]
+        else:
+            veh_frames[veh_frame["batch_id"]].append(veh_frame)
+        
+        vic_frame = VICFrame(path, elem, veh_frame, inf_frame, 0)
+                    
+        label = Label_kitti(osp.join(path, elem["cooperative_label_path"]), None)
+        # from IPython import embed
+        # embed(header='xxx')
+        trans_1 = vic_frame.transform("World", "Vehicle_lidar")
+        label["veh_boxes_3d"] = trans_1(label["boxes_3d"])
+        trans_2 = vic_frame.transform("World", "Infrastructure_lidar")
+        label["inf_boxes_3d"] = trans_2(label["boxes_3d"])
+        
+        # labels_path = veh_frame["label_" + label_type + "_std_path"]
+        labels_path = inf_frame["label_" + label_type + "_std_path"]
+        
+        
+        # fetch transformation matrixs
+        # intrinstic 3*3
+        veh_cam_D, veh_cam_K = get_cam_D_and_cam_K(osp.join(path, "vehicle-side", veh_frame["calib_camera_intrinsic_path"]))
+        inf_cam_D, inf_cam_K = get_cam_D_and_cam_K(osp.join(path, "infrastructure-side", inf_frame["calib_camera_intrinsic_path"]))
+        
+        # from IPython import embed
+        # embed()
+        
+        # lidar2cam 3*4
+        r_veh_lidar2cam, t_veh_lidar2cam = get_lidar2cam_2(
+            osp.join(path, "vehicle-side", veh_frame["calib_lidar_to_camera_path"])
+        )
+
+        r_inf_lidar2cam, t_inf_lidar2cam = get_lidar2cam_2(
+            osp.join(path, "infrastructure-side", inf_frame["calib_virtuallidar_to_camera_path"])
+        )
+
+
+        # world2lidar 3*4
+        veh_trans = vic_frame.transform("World", "Vehicle_lidar") 
+        r_world2veh_lidar, t_world2veh_lidar = veh_trans.get_transformation()
+        
+        inf_trans = vic_frame.transform("World", "Infrastructure_lidar")
+        r_world2inf_lidar, t_world2inf_lidar = inf_trans.get_transformation()
+
+
+        # inf_trans2 = vic_frame.transform("Infrastructure_lidar", "World")
+        # r_inf_lidar2world, t_inf_lidar2world = inf_trans2.get_transformation()
+
+
+        # inf2veh_trans = vic_frame.transform("Infrastructure_lidar", "Vehicle_lidar")
+        # r_inf_lidar2veh_lidar, t_inf_lidar2veh_lidar = inf2veh_trans.get_transformation()
+
+        # r_new,t_new = inf2veh_trans.muilt_coord(r_inf_lidar2world,t_inf_lidar2world,r_world2veh_lidar,t_world2veh_lidar)
+
+        # assert (r_inf_lidar2veh_lidar == r_new).all()
+        # assert (t_inf_lidar2veh_lidar == t_new).all()
+        
+
+        txt_name = elem["vehicle_image_path"].split("/")[-1].replace(".jpg", ".txt")
+        txt_path = os.path.join(path_calib, txt_name)
+
+        
+        P2, veh_Tr_velo_to_cam = convert_calib_v2x_to_kitti(veh_cam_D, veh_cam_K, t_veh_lidar2cam, r_veh_lidar2cam)
+        P3, inf_Tr_velo_to_cam = convert_calib_v2x_to_kitti(inf_cam_D, inf_cam_K, t_inf_lidar2cam, r_inf_lidar2cam)
+        _, world2veh_lidar = convert_calib_v2x_to_kitti(veh_cam_D, veh_cam_K, t_world2veh_lidar, r_world2veh_lidar)
+        _, world2inf_lidar = convert_calib_v2x_to_kitti(inf_cam_D, inf_cam_K, t_world2inf_lidar, r_world2inf_lidar)
+
+        # print('infrastructure_image_path:',elem["infrastructure_image_path"])
+        # print('vehicle_image_path',elem["vehicle_image_path"])
+        # print('P2:',P2)
+        # print('P3:',P3)
+        # print('veh_Tr_velo_to_cam:',veh_Tr_velo_to_cam)
+        # print('inf_Tr_velo_to_cam:',inf_Tr_velo_to_cam)
+        # print('world2veh_lidar',world2veh_lidar)
+        # print('world2inf_lidar',world2inf_lidar)
+        
+        # print('\n')
+        
+        str_P2 = "P2: "
+        str_P3 = "P3: "
+        str_veh_Tr_velo_to_cam = "veh_Tr_velo_to_cam: "
+        str_inf_Tr_velo_to_cam = "inf_Tr_velo_to_cam: "
+        str_world2veh_lidar = "world2veh_lidar: "
+        str_world2inf_lidar = "world2inf_lidar: "
+        
+        for ii in range(11):
+            str_P2 = str_P2 + str(P2[ii]) + " "
+            str_P3 = str_P3 + str(P3[ii]) + " "
+            str_veh_Tr_velo_to_cam = str_veh_Tr_velo_to_cam + str(veh_Tr_velo_to_cam[ii]) + " "
+            str_inf_Tr_velo_to_cam = str_inf_Tr_velo_to_cam + str(inf_Tr_velo_to_cam[ii]) + " "
+            str_world2veh_lidar = str_world2veh_lidar + str(world2veh_lidar[ii]) + " "
+            str_world2inf_lidar = str_world2inf_lidar + str(world2inf_lidar[ii]) + " "
+        str_P2 = str_P2 + str(P2[11])
+        str_P3 = str_P3 + str(P3[11])
+        str_veh_Tr_velo_to_cam = str_veh_Tr_velo_to_cam + str(veh_Tr_velo_to_cam[11])
+        str_inf_Tr_velo_to_cam = str_inf_Tr_velo_to_cam + str(inf_Tr_velo_to_cam[11])
+        str_world2veh_lidar = str_world2veh_lidar + str(world2veh_lidar[11])
+        str_world2inf_lidar = str_world2inf_lidar + str(world2inf_lidar[11])
+
+        str_P0 = str_P2
+        str_P1 = str_P2
+        str_R0_rect = "R0_rect: 1 0 0 0 1 0 0 0 1"
+        str_Tr_imu_to_velo = str_veh_Tr_velo_to_cam
+
+        with open(txt_path, "w") as fp:
+            gt_line = (
+                str_P0
+                + "\n"
+                + str_P1
+                + "\n"
+                + str_P2
+                + "\n"
+                + str_P3
+                + "\n"
+                + str_R0_rect
+                + "\n"
+                + str_veh_Tr_velo_to_cam
+                + "\n"
+                + str_inf_Tr_velo_to_cam
+                + "\n"
+                + str_world2veh_lidar
+                + "\n"
+                + str_world2inf_lidar
+                + "\n"
+                + str_Tr_imu_to_velo
+            )
+            fp.write(gt_line)
+
+def gen_calib2kitti_coop_train(source_root, target_root, label_type="lidar"):
+    write_path = os.path.join(target_root, "label", label_type)
+    mkdir_p(write_path)
+    
+    path_calib = os.path.join(target_root, "training/calib")
+    mkdir_p(path_calib)
+    
+    path = source_root
     frame_pairs = read_json(os.path.join(path, "cooperative/data_info.json"))
     sensortype = 'camera'
     

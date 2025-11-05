@@ -35,17 +35,20 @@ def update_backbone_vqvae_veh(model, filename, map_locaiton='cpu'):
     # embed(header='update')
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # filename = '/home/wangz/wangzhe21/VIMI/work_dirs/0515_VIMI_VQVAE_960x540_12e_bs2x1/best_car_3d_0.5_epoch_10.pth'
-    filename = '/home/wangz/wangzhe21/VIMI/work_dirs/0711_VIMI_VQVAE_Veh_B2_960x540_12e_bs2x1/best_car_3d_0.5_epoch_11.pth'
+    #filename = '/home/wangz/wangzhe21/VIMI/work_dirs/0711_VIMI_VQVAE_Veh_B2_960x540_12e_bs2x1/best_car_3d_0.5_epoch_11.pth'
+    #filename = '/home/yc/EMIFF/models/emiff.pth'
     checkpoint = torch.load(filename, map_location = device)
     state_dict = checkpoint['state_dict']
 
+    #with open('example.txt', 'w') as f:
+    #    f.write(str(state_dict))
     backbone_v_new = {k.replace('backbone_v.', ''): v for k, v in state_dict.items() if k.startswith('backbone_v.')}
     neck_v_new = {k.replace('neck_v.', ''): v for k, v in state_dict.items() if k.startswith('neck_v.')}
-    dcn_up_conv_v_new = {k.replace('dcn_up_conv_v.', ''): v for k, v in state_dict.items() if k.startswith('dcn_up_conv_v.')}
+    #dcn_up_conv_v_new = {k.replace('dcn_up_conv_v.', ''): v for k, v in state_dict.items() if k.startswith('dcn_up_conv_v.')}
 
     model.backbone_v.load_state_dict(backbone_v_new)
     model.neck_v.load_state_dict(neck_v_new)
-    model.dcn_up_conv_v.load_state_dict(dcn_up_conv_v_new)
+    #model.dcn_up_conv_v.load_state_dict(dcn_up_conv_v_new)
 
     return model 
     
@@ -55,7 +58,7 @@ def update_backbone_vqvae(model, filename, map_locaiton='cpu'):
     # embed(header='update')
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # filename = '/home/wangz/wangzhe21/VIMI/work_dirs/0515_VIMI_VQVAE_960x540_12e_bs2x1/best_car_3d_0.5_epoch_10.pth'
-    filename = '/home/wangz/wangzhe21/VIMI/work_dirs/0711_VIMI_VQVAE_Veh_B2_960x540_12e_bs2x1/best_car_3d_0.5_epoch_11.pth'
+    # filename = '/home/wangz/wangzhe21/VIMI/work_dirs/0711_VIMI_VQVAE_Veh_B2_960x540_12e_bs2x1/best_car_3d_0.5_epoch_11.pth'
     checkpoint = torch.load(filename, map_location = device)
     state_dict = checkpoint['state_dict']
 
