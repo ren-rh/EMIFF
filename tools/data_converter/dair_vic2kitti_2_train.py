@@ -1,4 +1,4 @@
-#该脚本用于RQ3实验重新训练数据集准备过程中的格式转换
+#This script is used for format conversion during the preparation of rq3 experiment retraining dataset
 import argparse
 import os
 from gen_kitti.label_coopcoord_to_cameracoord import gen_veh_lidar2veh_cam
