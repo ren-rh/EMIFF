@@ -1,0 +1,2 @@
+echo "# save this folder" > models/.gitignore
+echo "!*/" >> models/.gitignore
