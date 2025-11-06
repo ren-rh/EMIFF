@@ -47,7 +47,7 @@ def get_image_path(idx,
                    exist_check=True,
                    info_type='image_2',
                    use_prefix_id=False):
-    return get_kitti_info_path(idx, prefix, info_type, '.png', training,
+    return get_kitti_info_path(idx, prefix, info_type, '.jpg', training,
                                relative_path, exist_check, use_prefix_id)
 
 # def get_image_path(idx,
@@ -555,9 +555,9 @@ def add_difficulty_to_annos(info):
     occlusion = annos['occluded']
     truncation = annos['truncated']
     diff = []
-    easy_mask = np.ones((len(dims), ), dtype=np.bool)
-    moderate_mask = np.ones((len(dims), ), dtype=np.bool)
-    hard_mask = np.ones((len(dims), ), dtype=np.bool)
+    easy_mask = np.ones((len(dims), ), dtype=np.bool_)
+    moderate_mask = np.ones((len(dims), ), dtype=np.bool_)
+    hard_mask = np.ones((len(dims), ), dtype=np.bool_)
     i = 0
     for h, o, t in zip(height, occlusion, truncation):
         if o > max_occlusion[0] or h <= min_height[0] or t > max_trunc[0]:
